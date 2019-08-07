@@ -1,0 +1,125 @@
+{
+    "AWSTemplateFormatVersion": "2010-09-09",
+    "Transform": "AWS::Serverless-2016-10-31",
+    "Description": "SAM Template for demostack auth.",
+    "Parameters": {
+        "Namespace": {
+            "Type": "String",
+            "Default": "auth"
+        },
+        "MobilePhone": {
+            "Type": "String"
+        }
+    },
+    "Globals": {
+        "Function": {
+            "Timeout": 30,
+            "Environment": {
+                "Variables": {
+                    "NAMESPACE": {
+                        "Ref": "Namespace"
+                    },
+                    "MOBILEPHONE": {
+                        "Ref": "MobilePhone"
+                    }
+                }
+            }
+        }
+    },
+    "Resources": {
+        "MainFunction": {
+            "Type": "AWS::Serverless::Function",
+            "Properties": {
+                "Handler": "auth",
+                "Runtime": "go1.x",
+                "Tracing": "Active",
+                "Policies": [
+                    "arn:aws:iam::aws:policy/service-role/AWSLambdaRole",
+                    {
+                        "Version": "2012-10-17",
+                        "Statement": [
+                            {
+                                "Effect": "Allow",
+                                "Action": [
+                                    "dynamodb:CreateTable",
+                                    "dynamodb:GetItem",
+                                    "dynamodb:DeleteItem",
+                                    "dynamodb:PutItem",
+                                    "dynamodb:Scan",
+                                    "dynamodb:Query",
+                                    "dynamodb:UpdateItem",
+                                    "dynamodb:BatchWriteItem",
+                                    "dynamodb:BatchGetItem",
+                                    "dynamodb:DescribeTable"
+                                ],
+                                "Resource": [
+                                    {
+                                        "Fn::Sub": "arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${Namespace}-secret"
+                                    },
+                                    {
+                                        "Fn::Sub": "arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${Namespace}-secret/index/*"
+                                    },
+                                    {
+                                        "Fn::Sub": "arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${Namespace}-verify"
+                                    },
+                                    {
+                                        "Fn::Sub": "arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${Namespace}-verify/index/*"
+                                    }
+                                ]
+                            },
+                            {
+                                "Effect": "Allow",
+                                "Action": [
+                                    "sns:Publish"
+                                ],
+                                "Resource": [
+                                    "*"
+                                ]
+                            }
+                        ]
+                    }
+                ],
+                "Events": {
+                    "Hello": {
+                        "Type": "Api",
+                        "Properties": {
+                            "Path": "/healthcheck",
+                            "Method": "GET"
+                        }
+                    },
+                    "Auth": {
+                        "Type": "Api",
+                        "Properties": {
+                            "Path": "/auth",
+                            "Method": "POST"
+                        }
+                    },
+                    "Verify": {
+                        "Type": "Api",
+                        "Properties": {
+                            "Path": "/verify/{proxy+}",
+                            "Method": "GET"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "Outputs": {
+        "URL": {
+            "Description": "API Gateway endpoint URL",
+            "Value": {
+                "Fn::Sub": "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/"
+            }
+        },
+        "LambdaFunction": {
+            "Description": "Lambda Function ARN",
+            "Value": {
+                "Fn::GetAtt": [
+                    "MainFunction",
+                    "Arn"
+                ]
+            }
+        }
+    }
+}

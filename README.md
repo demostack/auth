@@ -1,2 +1,3 @@
 # auth
-Authentication service.
+
+Authentication service for demostack CLI.
