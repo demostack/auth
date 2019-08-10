@@ -17,7 +17,8 @@ import (
 type Core struct {
 	DB         *pkg.DynamoDB
 	region     string
-	phone      string
+	toEmail    string
+	fromEmail  string
 	isSAMLocal bool
 }
 
@@ -30,6 +31,8 @@ func (c *Core) Hander(w http.ResponseWriter, r *http.Request) {
 		c.Auth(w, r)
 	case strings.HasPrefix(r.URL.Path, "/verify"):
 		c.Verify(w, r)
+	default:
+		pkg.Render(w, http.StatusNotFound, "page not found")
 	}
 }
 
@@ -47,8 +50,9 @@ func (c *Core) Auth(w http.ResponseWriter, r *http.Request) {
 	}
 
 	type Request struct {
-		Username string `json:"username"`
-		Password string `json:"password"`
+		Username        string `json:"username"`
+		Password        string `json:"password"`
+		DurationSeconds int64  `json:"duration_seconds"`
 	}
 	req := Request{}
 	err := json.NewDecoder(r.Body).Decode(&req)
@@ -67,7 +71,7 @@ func (c *Core) Auth(w http.ResponseWriter, r *http.Request) {
 
 	if req.Username != "username" || req.Password != "password" {
 		fmt.Println("auth invalid")
-		pkg.Render(w, http.StatusBadRequest, err.Error())
+		pkg.Render(w, http.StatusBadRequest, "auth invalid")
 		return
 	}
 
@@ -88,7 +92,9 @@ func (c *Core) Auth(w http.ResponseWriter, r *http.Request) {
 	wait := 20
 	fmt.Printf("waiting %v second(s) for user to verify: %v\n", wait, u)
 
-	err = pkg.SendMessage(c.region, c.phone, fmt.Sprintf(`MFA request: %v. Approve: %v`, req.Username, u))
+	//err = pkg.SendMessage(c.region, c.phone, fmt.Sprintf(`MFA request: %v. Approve: %v`, req.Username, u))
+	err = pkg.SendEmail(c.region, c.fromEmail, c.toEmail, "",
+		fmt.Sprintf(`MFA request: %v. Approve: %v`, req.Username, u))
 	if err != nil {
 		fmt.Println("Send error:", err)
 	}
@@ -106,7 +112,14 @@ func (c *Core) Auth(w http.ResponseWriter, r *http.Request) {
 			fmt.Println("user verified")
 			c.DB.DeleteVerify(id)
 
-			creds, err := pkg.GetSessionToken(c.region, 900)
+			// Keep within the bounds.
+			if req.DurationSeconds < 900 {
+				req.DurationSeconds = 900 // 15 minutes
+			} else if req.DurationSeconds > 129600 {
+				req.DurationSeconds = 129600 // 36 hours
+			}
+
+			creds, err := pkg.GetSessionToken(c.region, req.DurationSeconds)
 			if err != nil {
 				fmt.Println("error getting sts credentials:", err)
 			}
@@ -121,7 +134,11 @@ func (c *Core) Auth(w http.ResponseWriter, r *http.Request) {
 
 	// Delete the value to clean up.
 	c.DB.DeleteVerify(id)
-	pkg.SendMessage(c.region, c.phone, "Request not approved.")
+	//pkg.SendMessage(c.region, c.phone, "Request not approved.")
+	err = pkg.SendEmail(c.region, c.fromEmail, c.toEmail, "", "Request not approved")
+	if err != nil {
+		fmt.Println("Send error:", err)
+	}
 
 	fmt.Println("user did not respond in time")
 	pkg.Render(w, http.StatusBadRequest, "user did not respond in time")
@@ -142,7 +159,11 @@ func (c *Core) Verify(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		fmt.Println("Could not set the token to valid:", err)
 	}
-	pkg.SendMessage(c.region, c.phone, "Request approved.")
+	//pkg.SendMessage(c.region, c.phone, "Request approved.")
+	err = pkg.SendEmail(c.region, c.fromEmail, c.toEmail, "", "Request approved")
+	if err != nil {
+		fmt.Println("Send error:", err)
+	}
 
 	pkg.Render(w, http.StatusOK, "marked as approved")
 }

@@ -24,7 +24,7 @@
   version = "v1.12.0"
 
 [[projects]]
-  digest = "1:61056eb9b6299b1428885fc219294b35dbb3e5bbddc2afaaf3bb94a00172f347"
+  digest = "1:6ec3def7a4a227e00a96fb9d384b2552ace08d522289d0d8a008979e71bc12bb"
   name = "github.com/aws/aws-sdk-go"
   packages = [
     "aws",
@@ -59,6 +59,7 @@
     "private/protocol/rest",
     "private/protocol/xml/xmlutil",
     "service/dynamodb",
+    "service/ses",
     "service/sns",
     "service/sts",
     "service/sts/stsiface",
@@ -83,7 +84,9 @@
     "github.com/aws/aws-sdk-go/aws/endpoints",
     "github.com/aws/aws-sdk-go/aws/session",
     "github.com/aws/aws-sdk-go/service/dynamodb",
+    "github.com/aws/aws-sdk-go/service/ses",
     "github.com/aws/aws-sdk-go/service/sns",
+    "github.com/aws/aws-sdk-go/service/sts",
   ]
   solver-name = "gps-cdcl"
   solver-version = 1

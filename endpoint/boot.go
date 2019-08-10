@@ -37,15 +37,21 @@ func Boot() *Core {
 		}
 	}
 
-	mobilePhone := os.Getenv("MOBILEPHONE")
-	if len(mobilePhone) == 0 {
-		log.Fatalln("Error: you must set environment variable: MOBILEPHONE (format: +12225557777)")
+	fromEmail := os.Getenv("FROMEMAIL")
+	if len(fromEmail) == 0 {
+		log.Fatalln("Error: you must set environment variable: FROMEMAIL (format: noreply@example.com)")
+	}
+
+	toEmail := os.Getenv("TOEMAIL")
+	if len(toEmail) == 0 {
+		log.Fatalln("Error: you must set environment variable: TOEMAIL (format: 2225557777@vtext.com)")
 	}
 
 	return &Core{
 		DB:         db,
 		region:     region,
-		phone:      mobilePhone,
+		fromEmail:  fromEmail,
+		toEmail:    toEmail,
 		isSAMLocal: len(os.Getenv("AWS_SAM_LOCAL")) > 0,
 	}
 }

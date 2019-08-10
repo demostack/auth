@@ -7,8 +7,13 @@ set -e
 sam --version
 
 # Check the environment variables.
-if [ -z "$MOBILEPHONE" ]; then
-  echo "Error: you must set the environment variable: MOBILEPHONE (format: +12225557777)"
+if [ -z "$FROMEMAIL" ]; then
+  echo "Error: you must set the environment variable: FROMEMAIL (format: noreply@example.com)"
+  exit
+fi
+
+if [ -z "$TOEMAIL" ]; then
+  echo "Error: you must set the environment variable: TOEMAIL (format: 2225557777@vtext.com)"
   exit
 fi
 
