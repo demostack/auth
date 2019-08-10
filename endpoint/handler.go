@@ -17,6 +17,8 @@ import (
 type Core struct {
 	DB         *pkg.DynamoDB
 	region     string
+	username   string
+	password   string
 	toEmail    string
 	fromEmail  string
 	isSAMLocal bool
@@ -69,7 +71,7 @@ func (c *Core) Auth(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("auth request for username:", req.Username)
 	//fmt.Println("auth request for password:", req.Password)
 
-	if req.Username != "username" || req.Password != "password" {
+	if req.Username != c.username || req.Password != c.password {
 		fmt.Println("auth invalid")
 		pkg.Render(w, http.StatusBadRequest, "auth invalid")
 		return
@@ -89,7 +91,7 @@ func (c *Core) Auth(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Number of seconds to wait.
-	wait := 20
+	wait := 25
 	fmt.Printf("waiting %v second(s) for user to verify: %v\n", wait, u)
 
 	//err = pkg.SendMessage(c.region, c.phone, fmt.Sprintf(`MFA request: %v. Approve: %v`, req.Username, u))

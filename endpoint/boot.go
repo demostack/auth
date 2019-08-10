@@ -12,7 +12,7 @@ import (
 )
 
 // Boot .
-func Boot() *Core {
+func Boot(username, password string) *Core {
 	// Get the namespace from the environment variable if it exists.
 	namespace := "auth"
 	if len(os.Getenv("NAMESPACE")) > 0 {
@@ -50,6 +50,8 @@ func Boot() *Core {
 	return &Core{
 		DB:         db,
 		region:     region,
+		username:   username,
+		password:   password,
 		fromEmail:  fromEmail,
 		toEmail:    toEmail,
 		isSAMLocal: len(os.Getenv("AWS_SAM_LOCAL")) > 0,

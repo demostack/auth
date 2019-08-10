@@ -7,7 +7,10 @@
             "Type": "String",
             "Default": "auth"
         },
-        "MobilePhone": {
+        "FromEmail": {
+            "Type": "String"
+        },
+        "ToEmail": {
             "Type": "String"
         }
     },
@@ -19,8 +22,11 @@
                     "NAMESPACE": {
                         "Ref": "Namespace"
                     },
-                    "MOBILEPHONE": {
-                        "Ref": "MobilePhone"
+                    "FROMEMAIL": {
+                        "Ref": "FromEmail"
+                    },
+                    "TOEMAIL": {
+                        "Ref": "ToEmail"
                     }
                 }
             }
@@ -54,12 +60,6 @@
                                 ],
                                 "Resource": [
                                     {
-                                        "Fn::Sub": "arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${Namespace}-secret"
-                                    },
-                                    {
-                                        "Fn::Sub": "arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${Namespace}-secret/index/*"
-                                    },
-                                    {
                                         "Fn::Sub": "arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${Namespace}-verify"
                                     },
                                     {
@@ -70,7 +70,7 @@
                             {
                                 "Effect": "Allow",
                                 "Action": [
-                                    "sns:Publish"
+                                    "ses:SendEmail"
                                 ],
                                 "Resource": [
                                     "*"
